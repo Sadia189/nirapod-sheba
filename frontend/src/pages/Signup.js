@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { handleError, handleSuccess } from '../utils';
 
@@ -9,99 +9,146 @@ function Signup() {
         name: '',
         email: '',
         password: ''
-    })
+    });
+
+    // ✅ ADD ROLE STATE
+    const [role, setRole] = useState('');
 
     const navigate = useNavigate();
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        console.log(name, value);
-        const copySignupInfo = { ...signupInfo };
-        copySignupInfo[name] = value;
-        setSignupInfo(copySignupInfo);
-    }
+
+        setSignupInfo((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSignup = async (e) => {
         e.preventDefault();
+
         const { name, email, password } = signupInfo;
-        if (!name || !email || !password) {
-            return handleError('name, email and password are required')
+
+        // ✅ VALIDATION (INCLUDING ROLE)
+        if (!name || !email || !password || !role) {
+            return handleError('Name, email, password and role are required');
         }
+
         try {
             const url = `http://localhost:8080/auth/signup`;
+
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(signupInfo)
+                // ✅ SEND ROLE TO BACKEND
+                body: JSON.stringify({ ...signupInfo, role })
             });
+
             const result = await response.json();
+
             const { success, message, error } = result;
+
             if (success) {
                 handleSuccess(message);
+
                 setTimeout(() => {
-                    navigate('/login')
-                }, 1000)
+                    navigate('/login');
+                }, 1000);
+
             } else if (error) {
-                const details = error?.details[0].message;
-                handleError(details);
-            } else if (!success) {
+                const details = error?.details?.[0]?.message;
+                handleError(details || "Validation error");
+
+            } else {
                 handleError(message);
             }
-            console.log(result);
+
         } catch (err) {
-            handleError(err);
+            handleError("Something went wrong");
         }
-    }
+    };
+
     return (
-  <div className="auth-page">
+        <div className="auth-page">
 
-    <div className="auth-card">
+            <div className="auth-card">
 
-      <div className="auth-header">
-        <h1 className="brand">Nirapod<span>Sheba</span></h1>
-        <p>Trusted Care, Guided by Faith</p>
-      </div>
+                <div className="auth-header">
+                    <h1 className="brand">Nirapod<span>Sheba</span></h1>
+                    <p>Trusted Care, Guided by Faith</p>
+                </div>
 
-      <form onSubmit={handleSignup}>
+                <form onSubmit={handleSignup}>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={signupInfo.name}
-          onChange={handleChange}
-        />
+                    {/* ✅ ROLE SELECT */}
+                    <div className="role-select">
+                        <button
+                            type="button"
+                            onClick={() => setRole('parent')}
+                            className={role === 'parent' ? 'active' : ''}
+                        >
+                            Parent
+                        </button>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          value={signupInfo.email}
-          onChange={handleChange}
-        />
+                        <button
+                            type="button"
+                            onClick={() => setRole('babysitter')}
+                            className={role === 'babysitter' ? 'active' : ''}
+                        >
+                            Babysitter
+                        </button>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={signupInfo.password}
-          onChange={handleChange}
-        />
+                        <button
+                            type="button"
+                            onClick={() => setRole('admin')}
+                            className={role === 'admin' ? 'active' : ''}
+                        >
+                            Admin
+                        </button>
+                    </div>
 
-        <button className="primary-btn">Sign Up</button>
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name"
+                        value={signupInfo.name}
+                        onChange={handleChange}
+                    />
 
-        <p className="switch">
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email Address"
+                        value={signupInfo.email}
+                        onChange={handleChange}
+                    />
 
-      </form>
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={signupInfo.password}
+                        onChange={handleChange}
+                    />
 
-    </div>
+                    <button className="primary-btn">
+                        Sign Up
+                    </button>
 
-    <ToastContainer />
-  </div>
-)
+                    <p className="switch">
+                        Already have an account? <Link to="/login">Login</Link>
+                    </p>
+
+                </form>
+
+            </div>
+
+            <ToastContainer />
+        </div>
+    );
 }
 
-export default Signup
+export default Signup;
