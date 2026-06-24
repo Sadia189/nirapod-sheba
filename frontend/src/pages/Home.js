@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+// Home.js 
+=======
 // Home.js - Full homepage matching design screenshot
+>>>>>>> frontend
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { handleSuccess } from '../utils';
